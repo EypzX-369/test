@@ -2,11 +2,17 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const splashScreen = document.getElementById('splashScreen');
     const heroVideo = document.getElementById('heroVideo');
-    
+    const isDesktopViewport = () => window.matchMedia('(min-width: 1025px)').matches;
+
     // Handle splash screen click
     const removeSplashScreen = () => {
         splashScreen.classList.add('hidden');
-        if (heroVideo) {
+        if (heroVideo && isDesktopViewport()) {
+            const source = heroVideo.querySelector('source[data-src]');
+            if (source && !source.src) {
+                source.src = source.getAttribute('data-src');
+                heroVideo.load();
+            }
             heroVideo.volume = 0.5;
             heroVideo.play().catch(err => console.log('Video play failed:', err));
         }
@@ -14,12 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     splashScreen.addEventListener('click', removeSplashScreen);
     document.addEventListener('touchstart', removeSplashScreen, { once: true, passive: true });
-    
-    // Video setup
-    if (heroVideo) {
-        heroVideo.volume = 0.5;
-        // Don't auto-play, wait for splash screen click
-    }
     
     // Scroll reveal / disappear animation for text and buttons in every section
     const revealSelector = [
