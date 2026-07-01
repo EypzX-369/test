@@ -495,6 +495,26 @@ nav:hover {
     z-index: -1;
 }
 
+.hero-orb {
+    display: none;
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(50px);
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform;
+}
+
+@keyframes orbFloatA {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-18px, 28px) scale(1.12); }
+}
+
+@keyframes orbFloatB {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(22px, -22px) scale(1.08); }
+}
+
 #heroVideo {
     display: none;
     position: fixed;
@@ -938,8 +958,46 @@ footer p {
         background: rgba(0, 0, 0, 0.25);
     }
 
+    .hero-orb {
+        display: block;
+    }
+
+    .hero-orb-a {
+        width: 240px;
+        height: 240px;
+        top: -50px;
+        right: -60px;
+        background: radial-gradient(circle, rgba(147, 51, 234, 0.55), transparent 70%);
+        animation: orbFloatA 10s ease-in-out infinite;
+    }
+
+    .hero-orb-b {
+        width: 200px;
+        height: 200px;
+        bottom: 12%;
+        left: -70px;
+        background: radial-gradient(circle, rgba(109, 40, 217, 0.5), transparent 70%);
+        animation: orbFloatB 12s ease-in-out infinite;
+    }
+
     #about, #skills, #services, #contact {
         margin-top: 0;
+        position: relative;
+    }
+
+    /* Subtle ambient glow per section — static (no fixed attachment), so it
+       costs nothing extra on scroll but adds depth instead of flat black. */
+    #about::before, #skills::before, #services::before, #contact::before {
+        content: "";
+        position: absolute;
+        top: -5%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 140%;
+        height: 50%;
+        background: radial-gradient(ellipse at center, rgba(109, 40, 217, 0.12), transparent 70%);
+        pointer-events: none;
+        z-index: 0;
     }
 
     section {
@@ -975,7 +1033,9 @@ footer p {
     nav {
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
-        background: rgba(5, 4, 10, 0.94);
+        background: linear-gradient(180deg, rgba(8, 5, 14, 0.97), rgba(8, 5, 14, 0.88));
+        border-bottom: 1px solid rgba(147, 51, 234, 0.25);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(147, 51, 234, 0.15);
     }
 
     .glass-card {
@@ -983,7 +1043,8 @@ footer p {
         -webkit-backdrop-filter: none;
         background: rgba(11, 6, 20, 0.9);
         animation: none;
-        transition: border-color 0.3s ease, background 0.3s ease;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55), 0 0 20px rgba(109, 40, 217, 0.12);
+        transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
     }
 
     .glass-card::before,
@@ -993,6 +1054,68 @@ footer p {
 
     .glass-card:hover {
         transform: none;
+    }
+
+    /* Tap feedback stands in for :hover on touch devices */
+    .glass-card:active {
+        transform: scale(0.98);
+        border-color: var(--border-hover);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55), 0 0 30px rgba(147, 51, 234, 0.3);
+    }
+
+    .skill-icon {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .glass-card:active .skill-icon {
+        transform: scale(1.08);
+        box-shadow: 0 0 30px rgba(139, 92, 246, 0.35);
+    }
+
+    .social-item:active {
+        transform: translateX(4px);
+        border-color: var(--accent2);
+        background: rgba(139, 92, 246, 0.12);
+    }
+
+    .btn:active {
+        transform: scale(0.96);
+    }
+
+    .btn-primary:active {
+        box-shadow: 0 4px 20px var(--glow), 0 0 30px rgba(139, 92, 246, 0.5);
+    }
+
+    /* Cascading entrance instead of every card in a grid appearing at once */
+    .glow-grid > *:nth-child(1) { transition-delay: 0s; }
+    .glow-grid > *:nth-child(2) { transition-delay: .08s; }
+    .glow-grid > *:nth-child(3) { transition-delay: .16s; }
+    .glow-grid > *:nth-child(4) { transition-delay: .24s; }
+    .glow-grid > *:nth-child(5) { transition-delay: .32s; }
+    .glow-grid > *:nth-child(6) { transition-delay: .4s; }
+
+    /* Animated accent underline beneath section titles as they scroll in */
+    .section-header h2 {
+        position: relative;
+        padding-bottom: 0.75rem;
+    }
+
+    .section-header h2::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 3px;
+        border-radius: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        box-shadow: 0 0 12px var(--glow-bright);
+        transition: width 0.6s ease 0.2s;
+    }
+
+    .section-header h2.reveal-visible::after {
+        width: 70px;
     }
 
     .nav-links {
