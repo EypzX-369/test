@@ -1,8 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
     
     const splashScreen = document.getElementById('splashScreen');
-    const heroVideo = document.getElementById('heroVideo');
-    const isDesktopViewport = () => window.matchMedia('(min-width: 1025px)').matches;
+    let heroVideo = document.getElementById('heroVideo');
+    // Treat anything without a fine pointer (i.e. touch devices) as mobile too,
+    // so a large tablet in touch mode doesn't still try to load/play video.
+    const isDesktopViewport = () =>
+        window.matchMedia('(min-width: 1025px)').matches &&
+        window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    // On mobile, the video isn't needed at all — remove it from the DOM
+    // entirely (rather than just hiding it) so there's no chance of it
+    // loading, buffering, or being toggled on later by a resize/rotation.
+    if (heroVideo && !isDesktopViewport()) {
+        heroVideo.remove();
+        heroVideo = null;
+    }
 
     // Handle splash screen click
     const removeSplashScreen = () => {
