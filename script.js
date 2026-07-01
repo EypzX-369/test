@@ -1,31 +1,57 @@
 document.addEventListener("DOMContentLoaded", () => {
     
-    // Enable video sound and autoplay
+    const splashScreen = document.getElementById('splashScreen');
     const heroVideo = document.getElementById('heroVideo');
+    
+    // Handle splash screen click
+    const removeSplashScreen = () => {
+        splashScreen.classList.add('hidden');
+        if (heroVideo) {
+            heroVideo.volume = 0.5;
+            heroVideo.play().catch(err => console.log('Video play failed:', err));
+        }
+    };
+    
+    splashScreen.addEventListener('click', removeSplashScreen);
+    document.addEventListener('touchstart', removeSplashScreen, { once: true });
+    
+    // Video setup
     if (heroVideo) {
         heroVideo.volume = 0.5;
-        
-        // Try to play with sound
-        const playPromise = heroVideo.play();
-        if (playPromise !== undefined) {
-            playPromise
-                .then(() => {
-                    heroVideo.muted = false;
-                })
-                .catch(() => {
-                    // Autoplay failed, unmute on first user interaction
-                    const unmuteOnInteraction = () => {
-                        heroVideo.muted = false;
-                        heroVideo.play();
-                        document.removeEventListener('click', unmuteOnInteraction);
-                        document.removeEventListener('touchstart', unmuteOnInteraction);
-                    };
-                    document.addEventListener('click', unmuteOnInteraction);
-                    document.addEventListener('touchstart', unmuteOnInteraction);
-                });
-        }
+        // Don't auto-play, wait for splash screen click
     }
     
+    // Scroll reveal / disappear animation for text and buttons in every section
+    const revealSelector = [
+        'section:not(#hero) h1',
+        'section:not(#hero) h2',
+        'section:not(#hero) h3',
+        'section:not(#hero) h4',
+        'section:not(#hero) p',
+        'section:not(#hero) .btn',
+        'section:not(#hero) li',
+        'section:not(#hero) .social-item',
+        'footer p'
+    ].join(', ');
+
+    const revealTargets = document.querySelectorAll(revealSelector);
+    revealTargets.forEach(el => el.classList.add('reveal-fade'));
+
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('reveal-visible');
+            } else {
+                entry.target.classList.remove('reveal-visible');
+            }
+        });
+    }, {
+        threshold: 0.15,
+        rootMargin: '0px 0px -10% 0px'
+    });
+
+    revealTargets.forEach(el => revealObserver.observe(el));
+
     // Glow tracking for cards
     const trackGlowCards = document.querySelectorAll('.glass-card');
     
@@ -57,14 +83,24 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Progress bar and active nav link
+    // Progress bar, active nav link, and hero fade-out
     const progressBar = document.getElementById('pb');
     const portfolioSections = document.querySelectorAll('section');
+    const heroSection = document.getElementById('hero');
 
     window.addEventListener('scroll', () => {
         const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
         const progressPercentage = (window.pageYOffset / scrollHeight) * 100;
         progressBar.style.width = `${progressPercentage}%`;
+
+        // Hide the fixed hero once the user has scrolled roughly past it
+        if (heroSection) {
+            if (window.pageYOffset > window.innerHeight * 0.85) {
+                heroSection.classList.add('hero-hidden');
+            } else {
+                heroSection.classList.remove('hero-hidden');
+            }
+        }
 
         let currentActiveSectionId = "";
         portfolioSections.forEach(section => {
