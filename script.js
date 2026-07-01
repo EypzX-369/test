@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     
     splashScreen.addEventListener('click', removeSplashScreen);
-    document.addEventListener('touchstart', removeSplashScreen, { once: true });
+    document.addEventListener('touchstart', removeSplashScreen, { once: true, passive: true });
     
     // Video setup
     if (heroVideo) {
@@ -88,14 +88,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const portfolioSections = document.querySelectorAll('section');
     const heroSection = document.getElementById('hero');
 
-    window.addEventListener('scroll', () => {
-        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-        const progressPercentage = (window.pageYOffset / scrollHeight) * 100;
+    // Cache layout values instead of reading them on every scroll event
+    let cachedScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    let cachedSectionOffsets = Array.from(portfolioSections).map(section => ({
+        id: section.getAttribute('id'),
+        top: section.offsetTop - 120
+    }));
+
+    const recalcLayout = () => {
+        cachedScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        cachedSectionOffsets = Array.from(portfolioSections).map(section => ({
+            id: section.getAttribute('id'),
+            top: section.offsetTop - 120
+        }));
+    };
+    window.addEventListener('resize', recalcLayout, { passive: true });
+    window.addEventListener('load', recalcLayout);
+
+    let scrollTicking = false;
+
+    const onScroll = () => {
+        const scrollY = window.pageYOffset;
+        const progressPercentage = cachedScrollHeight > 0 ? (scrollY / cachedScrollHeight) * 100 : 0;
         progressBar.style.width = `${progressPercentage}%`;
 
         // Hide the fixed hero once the user has scrolled roughly past it
         if (heroSection) {
-            if (window.pageYOffset > window.innerHeight * 0.85) {
+            if (scrollY > window.innerHeight * 0.85) {
                 heroSection.classList.add('hero-hidden');
             } else {
                 heroSection.classList.remove('hero-hidden');
@@ -103,10 +122,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         let currentActiveSectionId = "";
-        portfolioSections.forEach(section => {
-            const sectionTopPos = section.offsetTop - 120;
-            if (window.pageYOffset >= sectionTopPos) {
-                currentActiveSectionId = section.getAttribute('id');
+        cachedSectionOffsets.forEach(({ id, top }) => {
+            if (scrollY >= top) {
+                currentActiveSectionId = id;
             }
         });
 
@@ -116,7 +134,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 link.classList.add('active');
             }
         });
-    });
+
+        scrollTicking = false;
+    };
+
+    window.addEventListener('scroll', () => {
+        if (!scrollTicking) {
+            requestAnimationFrame(onScroll);
+            scrollTicking = true;
+        }
+    }, { passive: true });
 
     // Form submission
     const contactFormNode = document.getElementById('cf');
